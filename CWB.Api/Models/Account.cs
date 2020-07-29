@@ -49,6 +49,7 @@ namespace CWB.Api.Models
         public bool donotbulkpostalmail { get; set; }
         public bool creditonhold { get; set; }
         public string _transactioncurrencyid_value { get; set; }
+        [System.ComponentModel.DataAnnotations.Key]
         public string accountid { get; set; }
         public bool donotbulkemail { get; set; }
         public string _modifiedby_value { get; set; }

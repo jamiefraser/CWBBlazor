@@ -2,10 +2,14 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using CWBBlazor.Shared
+@using TG.Blazor.IndexedDB
+@using Polly
+@using Polly.Retry  
+<!--We have to inject a generic IHttpClientFactory and IndexedDBManager here -->
+@inject IHttpClientFactory clientFactory;
+@inject IndexedDBManager DbManager;
 @attribute [Authorize]
 
-//We have to inject a generic IHttpClientFactory here
-@inject IHttpClientFactory clientFactory 
 
 <h1>Weather forecast</h1>
 
@@ -40,21 +44,74 @@ else
     </table>
 }
 
-@code {
+@code { 
+    override protected void OnInitialized()
+    {
+        base.OnInitialized();
+    }
     private WeatherForecast[] forecasts;
+    private void OnIndexedDbNotification(object sender, IndexedDBNotificationArgs args)
+    {
+        System.Diagnostics.Debug.WriteLine(args.Message);
+        if (args.Outcome == IndexDBActionOutCome.Failed)
+        {
+            System.Diagnostics.Debug.WriteLine(args.Message);
+        }
+    }
+    private async Task WriteForecasts(List<WeatherForecast> forecasts)
+    {
+        foreach (WeatherForecast wf in forecasts)
+        {
+            wf.Id = string.IsNullOrEmpty(wf.Id) ? Guid.NewGuid().ToString() : wf.Id;
+            System.Diagnostics.Debug.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(wf));
+            var newForecast = new StoreRecord<WeatherForecast>
+            {
+                Storename = "Forecasts",
+                Data = wf
+            };
+            System.Diagnostics.Debug.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(newForecast));
+            await DbManager.AddRecord(newForecast);
+        }
+    }
+    private async Task<List<WeatherForecast>> GetForecasts()
+    {
+        var httpExceptionRetryPolicy = Polly.Policy.Handle<Exception>().RetryAsync(3, async (ex, counter) => { await Task.Delay(500 * counter).ConfigureAwait(false); });
+        DbManager.ActionCompleted += OnIndexedDbNotification;
+        await httpExceptionRetryPolicy.ExecuteAsync(async () =>
+        {
+            var client = clientFactory.CreateClient("ServerAPI");
+            var results = await client.GetFromJsonAsync<WeatherForecast[]>("https://localhost:44345/api/values");
+            await WriteForecasts(results.ToList());
+        });
 
+        var results = await DbManager.GetRecords<WeatherForecast>("Forecasts");
+        return results;
+        //return results;
+    }
+    private async Task<List<WeatherForecast>> GetLocalForecasts()
+    {
+        var results = await DbManager.GetRecords<WeatherForecast>("Forecasts");
+        return results.ToList<WeatherForecast>();
+    }
     protected override async Task OnInitializedAsync()
     {
+
         try
         {
-            //then we use the generic factory to create the specific client instance we want, based on its name in the dictionary
-            var client = clientFactory.CreateClient("ServerAPI");
-            //when we make the call below, the AuthorizationHandler does all the work to get a token, refresh it if need-be, and attach that to the request header
-            forecasts = await client.GetFromJsonAsync<WeatherForecast[]>("https://localhost:44345/api/values");
+            await GetLocalForecasts().ContinueWith(fc => this.forecasts = fc.Result.ToArray()).ContinueWith(async (fcContinue) =>
+            {
+                this.forecasts = (await GetForecasts()).ToArray();
+                base.StateHasChanged();
+            });
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex.Message);
+            throw;
         }
     }
 
