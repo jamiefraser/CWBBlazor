@@ -1,0 +1,61 @@
+@page "/fetchdata"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using CWBBlazor.Shared
+@attribute [Authorize]
+
+//We have to inject a generic IHttpClientFactory here
+@inject IHttpClientFactory clientFactory 
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private WeatherForecast[] forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            //then we use the generic factory to create the specific client instance we want, based on its name in the dictionary
+            var client = clientFactory.CreateClient("ServerAPI");
+            //when we make the call below, the AuthorizationHandler does all the work to get a token, refresh it if need-be, and attach that to the request header
+            forecasts = await client.GetFromJsonAsync<WeatherForecast[]>("https://localhost:44345/api/values");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+}

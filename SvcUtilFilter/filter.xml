@@ -1,0 +1,10 @@
+﻿<filter>
+  <entities>
+    <entity>systemuser</entity>
+    <entity>team</entity>
+    <entity>role</entity>
+    <entity>businessunit</entity>
+    <entity>account</entity>
+    <entity>contact</entity>
+  </entities>
+</filter>
