@@ -1,0 +1,30 @@
+﻿@inject NavigationManager navigationManager
+
+<h3>ListAccounts</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Last Modified</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var account in Accounts.OrderBy(a => a.name).AsParallel())
+        {
+            <tr @onclick="@(e => accountClick(@account.accountid))">
+                <td>@account.name</td>
+                <td>@account.address1_composite</td>
+                <td>@account.modifiedon</td>
+            </tr>
+        }
+    </tbody>
+</table>
+@code {
+    [Parameter] public List<CWB.Api.Models.Account> Accounts { get; set; }
+    protected void accountClick(string id)
+    {
+        navigationManager.NavigateTo($"accounts/{id}/view");
+    }
+
+}

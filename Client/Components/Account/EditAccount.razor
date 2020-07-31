@@ -1,0 +1,7 @@
+﻿@using CWB.Api.Models;
+<h3>Edit Account</h3>
+<input type="text" value="@account.name" />
+@code {
+    [Parameter] public CWB.Api.Models.Account account { get; set; }
+
+}

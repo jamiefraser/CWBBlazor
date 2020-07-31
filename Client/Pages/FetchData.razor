@@ -5,9 +5,11 @@
 @using TG.Blazor.IndexedDB
 @using Polly
 @using Polly.Retry  
+@using CWBBlazor.Client.ClientServices; 
 <!--We have to inject a generic IHttpClientFactory and IndexedDBManager here -->
 @inject IHttpClientFactory clientFactory;
 @inject IndexedDBManager DbManager;
+
 @attribute [Authorize]
 
 
@@ -63,13 +65,11 @@ else
         foreach (WeatherForecast wf in forecasts)
         {
             wf.Id = string.IsNullOrEmpty(wf.Id) ? Guid.NewGuid().ToString() : wf.Id;
-            System.Diagnostics.Debug.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(wf));
             var newForecast = new StoreRecord<WeatherForecast>
             {
                 Storename = "Forecasts",
                 Data = wf
             };
-            System.Diagnostics.Debug.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(newForecast));
             await DbManager.AddRecord(newForecast);
         }
     }
@@ -86,7 +86,6 @@ else
 
         var results = await DbManager.GetRecords<WeatherForecast>("Forecasts");
         return results;
-        //return results;
     }
     private async Task<List<WeatherForecast>> GetLocalForecasts()
     {

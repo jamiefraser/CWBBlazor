@@ -1,0 +1,100 @@
+﻿@page "/accounts"
+@page "/accounts/{id}/{mode}"
+@using CWBBlazor.Client.ClientServices;
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+@using System.Threading;
+@using CWBBlazor.Client.Components;
+@using CWBBlazor.Client.Components.Account;
+@inject AccountsService accountsService;
+@inject NavigationManager navigationManager;
+
+@attribute [Authorize]
+@inject AccountsService accountsService;
+@implements IDisposable;
+<h3>Accounts</h3>
+@if (string.IsNullOrEmpty(Id) && accountsService.Accounts == null)
+{
+    <p><em>Loading Table...</em></p>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(Id) && account == null)
+    {
+        <p><em>Fetching account...</em></p>
+    }
+    else
+    {
+        @if (string.IsNullOrEmpty(Id))
+        {
+            <ListAccounts Accounts="@accountsService.Accounts"></ListAccounts>
+        }
+        else
+        {
+            if (Mode.ToLower() == "edit")
+            {
+                <EditAccount account="@account"></EditAccount>
+            }
+            else
+            {
+                <ViewAccount account="@account"></ViewAccount>
+            }
+        }
+    }
+}
+
+@code 
+{
+    [Parameter] public string Id { get; set; }
+    [Parameter] public string Mode { get; set; }
+    private CWB.Api.Models.Account account = null;
+    private List<CWB.Api.Models.Account> accounts;
+    private bool isInitialized;
+    private object refreshAccountsCancellationToken = null;
+    private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+
+    protected void LocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        if (!e.Location.ToLower().Contains("accounts"))
+        {
+            _cancellationTokenSource.Cancel();
+            navigationManager.LocationChanged -= LocationChanged;
+            accountsService.PropertyChanged -= AccountServicePropertyChanged;
+            _cancellationTokenSource.Dispose();
+            this.Dispose();
+        }
+
+    }
+    protected void AccountServicePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs args)
+    {
+        StateHasChanged();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+    public void Dispose()
+    {
+
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        accountsService.PropertyChanged += AccountServicePropertyChanged;
+
+        System.Diagnostics.Debug.WriteLine($"ID: {Id}");
+        if (string.IsNullOrEmpty(Id))
+        {
+            navigationManager.LocationChanged += LocationChanged;
+            isInitialized = true;
+            await accountsService.RefreshAccounts(_cancellationTokenSource.Token);
+        }
+        else
+        {
+            account = await accountsService.GetAccountAsync(Id);
+        }
+        await base.OnParametersSetAsync();
+        return;
+    }
+
+}

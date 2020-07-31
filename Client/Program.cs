@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TG.Blazor.IndexedDB;
+using CWBBlazor.Client.ClientServices;
+
 namespace CWBBlazor.Client
 {
     public class Program
@@ -31,7 +33,7 @@ namespace CWBBlazor.Client
                 builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
                 options.ProviderOptions.DefaultAccessTokenScopes.Add("https://nsdevelopment.onmicrosoft.com/DualBlazor/user_impersonation");
             });
-
+            builder.Services.AddScoped<AccountsService>();
             builder.Services.AddIndexedDB(dbStore =>
             {
                 dbStore.DbName = "D365Entities";

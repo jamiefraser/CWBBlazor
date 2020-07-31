@@ -1,0 +1,13 @@
+﻿@using CWB.Api.Models;
+@inject NavigationManager navigationManager;
+<h3>Edit Account</h3>
+<label value="@account.name">@account.name</label>
+<br/>
+<button @onclick="@this.editRecord">Edit</button>
+@code {
+    [Parameter] public CWB.Api.Models.Account account { get; set; }
+    private void editRecord()
+    {
+        navigationManager.NavigateTo($"/accounts/{account.accountid}/edit");
+    }
+}

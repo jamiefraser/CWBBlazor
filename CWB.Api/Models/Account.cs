@@ -191,6 +191,26 @@ namespace CWB.Api.Models
         public object importsequencenumber { get; set; }
         public object industrycode { get; set; }
         public object address1_telephone3 { get; set; }
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            var propertyCollection = typeof(Account).GetProperties();
+            foreach(var pi in propertyCollection)
+            {
+                object value = null;
+                try
+                {
+                    value = pi.GetValue(this);
+                    if(value != null)
+                    {
+                        hash += value.GetHashCode();
+                    }
+                }
+                catch
+                { }
+            }
+            return hash;
+        }
     }
 
 }

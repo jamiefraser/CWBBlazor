@@ -1,7 +1,16 @@
 @page "/authentication/{action}"
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using TG.Blazor.IndexedDB;
+
+@inject TG.Blazor.IndexedDB.IndexedDBManager dbManager;
 <RemoteAuthenticatorView Action="@Action" />
 
 @code{
     [Parameter] public string Action { get; set; }
+    protected override async void OnParametersSet()
+    {
+        base.OnParametersSet();
+        System.Diagnostics.Debug.WriteLine($"Action: {Action}");
+
+    }
 }
