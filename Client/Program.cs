@@ -34,13 +34,14 @@ namespace CWBBlazor.Client
                 options.ProviderOptions.DefaultAccessTokenScopes.Add("https://nsdevelopment.onmicrosoft.com/DualBlazor/user_impersonation");
             });
             builder.Services.AddScoped<AccountsService>();
+            builder.Services.AddScoped<ContactsService>();
             builder.Services.AddIndexedDB(dbStore =>
             {
                 dbStore.DbName = "D365Entities";
                 //Important!  Every time you decide to add another table like you're doing in the the dbStore.Stores.Add call below, increment the dbStore.Version.  That way you can extend the database schema without losing the already persisted data
                 //If you mess up your PrimaryKey definition(s) you may need to fiddle around to get rid of the messed up table -> changing the Version won't fix the problem (it seems).  Instead you need to either delete the table or delete the database and start again
                 //You can manage IndexedDb instances in the browser -> Go to Developer Tools/Application
-                dbStore.Version = 2;
+                dbStore.Version = 3;
                 dbStore.Stores.Add(new StoreSchema
                 {
                     Name = "Accounts",
@@ -69,9 +70,25 @@ namespace CWBBlazor.Client
                         Auto = false
                     }
                 });
+                dbStore.Stores.Add(new StoreSchema
+                {
+                    Name = "Contacts",
+                    PrimaryKey = new IndexSpec
+                    {
+                        Name = "contactid",
+                        KeyPath = "contactid",
+                        Auto = false,
+                        Unique = true
+                    },
+                    Indexes = new List<IndexSpec>
+                    {
+                        new IndexSpec { Name = "fullname", KeyPath = "fullname", Auto = false }
+                    }
+                });
             }
             );
             builder.Services.AddAuthorizationCore();
+            builder.Services.AddTelerikBlazor();
             await builder.Build().RunAsync();
         }
     }

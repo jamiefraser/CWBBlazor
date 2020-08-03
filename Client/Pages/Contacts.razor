@@ -1,0 +1,100 @@
+﻿@page "/contacts"
+@page "/contacts/{id}/{mode}"
+@using CWBBlazor.Client.ClientServices;
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+@using System.Threading;
+@using CWBBlazor.Client.Components;
+@using CWBBlazor.Client.Components.Contact;
+@inject ContactsService contactsService;
+@inject NavigationManager navigationManager;
+
+@attribute [Authorize]
+@inject ContactsService contactsService;
+@implements IDisposable;
+<h3>Contacts</h3>
+@if (string.IsNullOrEmpty(Id) && contactsService.Contacts == null)
+{
+    <p><em>Loading Table...</em></p>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(Id) && contact == null)
+    {
+        <p><em>Fetching contact...</em></p>
+    }
+    else
+    {
+        @if (string.IsNullOrEmpty(Id))
+        {
+            <ListContacts Contacts="@contactsService.Contacts"></ListContacts>
+        }
+        else
+        {
+            if (Mode.ToLower() == "edit")
+            {
+                <EditContact contact="@contact"></EditContact>
+            }
+            else
+            {
+                <ViewContact contact="@contact"></ViewContact>
+            }
+        }
+    }
+}
+
+@code 
+{
+    [Parameter] public string Id { get; set; }
+    [Parameter] public string Mode { get; set; }
+    private CWB.Api.Models.Contact contact = null;
+    private List<CWB.Api.Models.Contact> contacts;
+    private bool isInitialized;
+    private object refreshAccountsCancellationToken = null;
+    private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+
+    protected void LocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        if (!e.Location.ToLower().Contains("contacts"))
+        {
+            _cancellationTokenSource.Cancel();
+            navigationManager.LocationChanged -= LocationChanged;
+            contactsService.PropertyChanged -= ContactsServicePropertyChanged;
+            _cancellationTokenSource.Dispose();
+            this.Dispose();
+        }
+
+    }
+    protected void ContactsServicePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs args)
+    {
+        StateHasChanged();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+    public void Dispose()
+    {
+
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        contactsService.PropertyChanged += ContactsServicePropertyChanged;
+
+        System.Diagnostics.Debug.WriteLine($"ID: {Id}");
+        if (string.IsNullOrEmpty(Id))
+        {
+            navigationManager.LocationChanged += LocationChanged;
+            isInitialized = true;
+            await contactsService.RefreshContacts(_cancellationTokenSource.Token);
+        }
+        else
+        {
+            contact = await contactsService.GetContactAsync(Id);
+        }
+        await base.OnParametersSetAsync();
+        return;
+    }
+
+}

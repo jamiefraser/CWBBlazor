@@ -1,0 +1,30 @@
+﻿@inject NavigationManager navigationManager
+@using Telerik.Blazor.Components;
+@using Telerik.Blazor.Components.Grid; 
+@using CWB.Api.Models; 
+<h3>List Contacts</h3>
+<TelerikGrid Data="@Contacts"
+             PageSize="5"
+             Sortable="true"
+             Pageable="true"
+             EditMode="@GridEditMode.Incell">
+    <GridColumns>
+        <GridColumn Title="Full Name" Field="@nameof(Contact.fullname)">
+        </GridColumn>
+    </GridColumns>
+    <GridToolBar>
+        <GridCommandButton Command="Add" Icon="add">Add Product</GridCommandButton>
+    </GridToolBar>
+</TelerikGrid>
+
+@code {
+    [Parameter] public List<CWB.Api.Models.Contact> Contacts { get; set; }
+    protected void contactClick(string id)
+    {
+        navigationManager.NavigateTo($"contacts/{id}/view");
+    }
+
+}
+@functions{
+}
+                                                                 e

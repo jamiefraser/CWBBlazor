@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Compile Include="..\CWB.Api\Models\Account.cs" Link="Models\Account.cs" />
+    <Compile Include="..\CWB.Api\Models\Contact.cs" Link="Models\Contact.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +20,7 @@
     <PackageReference Include="Polly" Version="7.2.1" />
     <PackageReference Include="refit" Version="5.1.67" />
     <PackageReference Include="System.Net.Http.Json" Version="3.2.0" />
+    <PackageReference Include="Telerik.UI.for.Blazor.Trial" Version="2.15.0" />
     <PackageReference Include="TG.Blazor.IndexedDB" Version="1.5.0-preview" />
   </ItemGroup>
 

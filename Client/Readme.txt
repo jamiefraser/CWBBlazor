@@ -1,0 +1,2 @@
+﻿This project uses the Telerik UI for Blazor components - because why on earth would anybody in their right mind want to write a Datagrid component??  Be sure to follow the setup instructions found here:  https://docs.telerik.com/blazor-ui/getting-started/client-blazor to be sure you have the dependencies installed properly.   You can either setup your own trial account or contact me for my credentials.  Note that the project itself should already be properly configured, so you're just installing and setting up the new nuget feed.
+

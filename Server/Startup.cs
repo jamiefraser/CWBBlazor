@@ -69,6 +69,7 @@ namespace CWBBlazor.Server
                 endpoints.MapRazorPages();
                 endpoints.MapFallbackToFile("index.html");
             });
+            app.UseStaticFiles();
         }
     }
 }
